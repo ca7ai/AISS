@@ -188,3 +188,7 @@ aiss scan https://agent-url.com --format all
 
 ## License
 
+This project is licensed under the PolyForm Noncommercial License 1.0.0.
+
+Free for: Researchers, students, hobbyists, and non-profit organizations. Commercial Use: If you want to use this code in a commercial product or business context, you must purchase a Commercial License. Please contact me via LinkedIn.
+
