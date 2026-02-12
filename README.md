@@ -188,4 +188,3 @@ aiss scan https://agent-url.com --format all
 
 ## License
 
-MIT License - see LICENSE file for details
