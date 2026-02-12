@@ -37,7 +37,7 @@ class SecurityScanner:
             "findings": findings,
             "summary": self._generate_summary(findings)
         }
-    
+        
     def _generate_summary(self, findings: List[Finding]) -> Dict[str, int]:
         """Generate severity summary"""
         summary = {level: 0 for level in SeverityLevel}
