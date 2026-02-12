@@ -4,7 +4,7 @@ Agent Response Testing Module
 from typing import List
 import aiohttp
 from datetime import datetime
-from ..core.scanner import Finding, SeverityLevel
+from ..core.models import Finding, SeverityLevel
 
 class AgentResponseTester:
     def __init__(self, target_url: str):
@@ -52,7 +52,7 @@ class AgentResponseTester:
                         ))
                     
                     # Check response time for timing attacks
-                    if response.elapsed.total_seconds() > 5.0:
+                    if hasattr(response, 'elapsed') and response.elapsed.total_seconds() > 5.0:
                         findings.append(Finding(
                             severity=SeverityLevel.LOW,
                             title="Slow Response Time",

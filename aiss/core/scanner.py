@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import asyncio
 from .config import AISSConfig
+from .models import Finding, SeverityLevel
 from ..modules.api_test import APISecurityTester
 from ..modules.agent_test import AgentResponseTester
 

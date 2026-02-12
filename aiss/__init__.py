@@ -2,5 +2,6 @@
 
 from .core.scanner import SecurityScanner
 from .core.config import AISSConfig
+from .core.models import Finding, SeverityLevel
 
 __version__ = "0.1.0"

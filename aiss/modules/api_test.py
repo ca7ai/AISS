@@ -5,7 +5,7 @@ from typing import List, Dict
 import aiohttp
 import asyncio
 from datetime import datetime
-from ..core.scanner import Finding, SeverityLevel
+from ..core.models import Finding, SeverityLevel
 
 class APISecurityTester:
     def __init__(self, target_url: str):
