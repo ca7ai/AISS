@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aiss"
+version = "0.1.0"
+description = "AI Security Screener - Comprehensive security testing tool for AI agents"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    { name = "Talos", email = "talos@openclaw.ai" }
+]
+dependencies = [
+    "aiohttp>=3.8.0",
+    "pydantic>=2.0.0",
+    "rich>=13.0.0",
+    "click>=8.0.0",
+    "pyyaml>=6.0.0",
+    "jinja2>=3.0.0",
+    "plotly>=5.0.0",
+    "pandas>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "flake8>=6.1.0",
+    "mypy>=1.5.0",
+]
+
+[project.scripts]
+aiss = "aiss.cli.main:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["aiss"]
