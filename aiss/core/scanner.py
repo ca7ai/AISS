@@ -1,96 +1,40 @@
 """
-AISS - Core scanner implementation
+Core scanner implementation
 """
-from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
-from enum import Enum
-import os
-import logging
+from datetime import datetime
 import asyncio
-
-class SeverityLevel(Enum):
-    CRITICAL = "CRITICAL"
-    HIGH = "HIGH"
-    MEDIUM = "MEDIUM"
-    LOW = "LOW"
-    INFO = "INFO"
-
-@dataclass
-class Finding:
-    severity: SeverityLevel
-    title: str
-    description: str
-    proof: str
-    remediation: str
-    timestamp: str
+from .config import AISSConfig
+from ..modules.api_test import APISecurityTester
+from ..modules.agent_test import AgentResponseTester
 
 class SecurityScanner:
-    def __init__(self, target: Optional[str] = None):
+    def __init__(self, target: Optional[str] = None, config: Optional[AISSConfig] = None):
         self.target = target
-        self.findings: List[Finding] = []
-        self.logger = logging.getLogger("aiss")
-        
-        # Secure configuration loading
-        self._load_config()
-    
-    def _load_config(self) -> None:
-        """Securely load configuration from environment"""
-        # Never hardcode API keys or credentials
-        self.config = {
-            "api_key": os.getenv("AISS_API_KEY"),
-            "log_level": os.getenv("AISS_LOG_LEVEL", "INFO"),
-            "timeout": int(os.getenv("AISS_TIMEOUT", "30"))
-        }
+        self.config = config or AISSConfig()
         
     async def run_scan(self) -> Dict[str, Any]:
-        """Run all security checks"""
-        try:
-            tasks = [
-                self._check_api_security(),
-                self._check_boundaries(),
-                self._check_credentials(),
-                self._check_social_engineering()
-            ]
-            results = await asyncio.gather(*tasks)
-            return self._compile_report(results)
+        """Run all security tests"""
+        if not self.target:
+            raise ValueError("Target URL is required for scanning")
             
-        except Exception as e:
-            self.logger.error(f"Scan failed: {str(e)}")
-            raise
-    
-    async def _check_api_security(self) -> List[Finding]:
-        """Check API security configuration"""
         findings = []
-        # Implementation here
-        return findings
-    
-    async def _check_boundaries(self) -> List[Finding]:
-        """Check security boundaries"""
-        findings = []
-        # Implementation here
-        return findings
-    
-    async def _check_credentials(self) -> List[Finding]:
-        """Check for credential exposure"""
-        findings = []
-        # Implementation here
-        return findings
-    
-    async def _check_social_engineering(self) -> List[Finding]:
-        """Test social engineering resistance"""
-        findings = []
-        # Implementation here
-        return findings
-    
-    def _compile_report(self, results: List[List[Finding]]) -> Dict[str, Any]:
-        """Compile findings into a report"""
-        all_findings = [f for sublist in results for f in sublist]
+        
+        # Run API Security Tests
+        api_tester = APISecurityTester(self.target)
+        api_findings = await api_tester.run_tests()
+        findings.extend(api_findings)
+        
+        # Run Agent Response Tests
+        agent_tester = AgentResponseTester(self.target)
+        agent_findings = await agent_tester.run_tests()
+        findings.extend(agent_findings)
         
         return {
-            "scan_time": "",  # Add timestamp
+            "timestamp": datetime.utcnow().isoformat(),
             "target": self.target,
-            "findings": all_findings,
-            "summary": self._generate_summary(all_findings)
+            "findings": findings,
+            "summary": self._generate_summary(findings)
         }
     
     def _generate_summary(self, findings: List[Finding]) -> Dict[str, int]:
