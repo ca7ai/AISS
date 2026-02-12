@@ -16,30 +16,109 @@ AISS is a comprehensive security screening tool designed specifically for AI age
 - 🚫 Boundary bypass detection
 - 🔐 Authentication testing
 
+### Enhanced Reporting 📊
+- Multiple output formats (text, JSON, HTML)
+- Interactive visualizations
+- Severity distribution charts
+- Findings timeline
+- Custom branding support
+- Detailed proof and remediation
+- Executive summaries
+
+### Configuration Options ⚙️
+- Customizable scan parameters
+- Report customization
+- Company branding
+- Output paths
+- Test thresholds
+- Custom user agents
+
 ## Installation
 
 ```bash
 pip install ai-security-screener
 ```
 
-## Usage
+## Configuration
 
-### Self-Check Mode (For Agents)
-```python
-from aiss import AgentSelfCheck
+Create a config file at `~/.config/aiss/config.yml`:
 
-checker = AgentSelfCheck()
-results = checker.run_assessment()
-print(results.report())
+```yaml
+scan:
+  max_requests: 50
+  timeout: 30
+  user_agent: "AISS-Scanner/1.0"
+  follow_redirects: true
+  verify_ssl: true
+
+report:
+  detail_level: "standard"  # minimal, standard, detailed
+  include_proof: true
+  output_format: "html"     # text, json, html
+  save_path: "~/aiss-reports"
+  company_name: "Your Company"
+  logo_path: "~/company-logo.png"
+
+log_level: "INFO"
 ```
 
-### External Testing (For Users)
-```python
-from aiss import SecurityScanner
+Or configure via environment variables:
+```bash
+export AISS_CONFIG=/path/to/config.yml
+export AISS_LOG_LEVEL=DEBUG
+export AISS_REPORT_FORMAT=html
+```
 
-scanner = SecurityScanner("https://your-agent.com")
+## Usage
+
+### Command Line Interface
+```bash
+# Run scan with default config
+aiss scan https://agent-url.com
+
+# Specify output format
+aiss scan https://agent-url.com --format html
+
+# Save report
+aiss scan https://agent-url.com -o report.html
+
+# Run self-check
+aiss self-check
+```
+
+### Python API
+```python
+from aiss import SecurityScanner, AISSConfig
+
+# Load custom config
+config = AISSConfig.load("my-config.yml")
+
+# Initialize scanner
+scanner = SecurityScanner("https://agent-url.com", config)
+
+# Run scan
 results = scanner.run_scan()
-print(results.generate_report())
+
+# Generate report
+report = scanner.generate_report(results)
+```
+
+### Report Customization
+```python
+from aiss.reporting import ReportGenerator
+from aiss.core.config import ReportConfig
+
+# Configure reporting
+config = ReportConfig(
+    detail_level="detailed",
+    output_format="html",
+    company_name="Your Company",
+    logo_path="path/to/logo.png"
+)
+
+# Generate custom report
+generator = ReportGenerator(config)
+report = generator.generate(findings, metadata)
 ```
 
 ## Security Best Practices
@@ -56,30 +135,12 @@ if not api_key:
     raise SecurityError("API key not found in environment")
 ```
 
-### Configuration
-Create a `.env` file:
-```bash
-# .env
-SERVICE_API_KEY=your_key_here
-```
-
-Add to .gitignore:
-```bash
-# .gitignore
-.env
-*.key
-credentials/
-```
-
-## Testing
-
-```bash
-# Run test suite
-pytest tests/
-
-# Run security audit
-aiss audit
-```
+### Configuration Security
+- Keep config files secure
+- Don't commit sensitive configs
+- Use environment variables for secrets
+- Validate SSL certificates
+- Set appropriate timeouts
 
 ## Development
 
@@ -98,7 +159,16 @@ pip install -r requirements-dev.txt
 
 ### Running Tests
 ```bash
-pytest tests/ -v
+pytest tests/ -v --cov=aiss
+```
+
+### Building Reports
+```bash
+# Install reporting dependencies
+pip install aiss[reporting]
+
+# Generate all report formats
+aiss scan https://agent-url.com --format all
 ```
 
 ## Contributing
