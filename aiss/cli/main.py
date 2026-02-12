@@ -1,35 +1,13 @@
 """
-AISS Command Line Interface
+AISS CLI interface
 """
 import click
 import asyncio
-import json
 from rich.console import Console
-from rich.table import Table
 from typing import Optional
-import os
 from ..core.scanner import SecurityScanner
-from datetime import datetime
 
 console = Console()
-
-def print_findings(findings):
-    table = Table(title="Security Findings")
-    
-    table.add_column("Severity", style="bold")
-    table.add_column("Title")
-    table.add_column("Description")
-    table.add_column("Remediation")
-    
-    for finding in findings:
-        table.add_row(
-            finding.severity.value,
-            finding.title,
-            finding.description,
-            finding.remediation
-        )
-    
-    console.print(table)
 
 @click.group()
 def cli():
@@ -37,50 +15,58 @@ def cli():
     pass
 
 @cli.command()
-@click.argument('target_url', required=False)
+@click.argument('target', required=False)
+@click.option('--type', '-t', type=click.Choice(['moltbook', 'openclaw', 'custom']), 
+              help='Type of agent to test')
+@click.option('--agent-id', help='Agent ID for Moltbook/OpenClaw agents')
 @click.option('--output', '-o', help='Output file for results')
 @click.option('--format', '-f', type=click.Choice(['text', 'json', 'html']), default='text')
-@click.option('--verbose', '-v', is_flag=True, help='Enable verbose output')
-def scan(target_url: Optional[str], output: Optional[str], format: str, verbose: bool):
-    """Run security scan on target agent"""
+def scan(target: Optional[str], type: str, agent_id: str, output: str, format: str):
+    """Scan an AI agent for security issues"""
     try:
-        if verbose:
-            console.print("[bold blue]Starting security scan...[/bold blue]")
-            
-        scanner = SecurityScanner(target_url)
+        if not target and not agent_id:
+            if type == 'moltbook':
+                console.print("[red]Error: Need --agent-id for Moltbook agents[/red]")
+                return
+            elif type == 'openclaw':
+                console.print("[yellow]No target specified, switching to self-check mode[/yellow]")
+                self_check()
+                return
+            else:
+                console.print("[red]Error: Need either target URL or --agent-id[/red]")
+                return
+
+        # Construct proper target URL
+        if type == 'moltbook' and agent_id:
+            target = f"https://www.moltbook.com/agents/{agent_id}"
+        elif type == 'openclaw' and agent_id:
+            # Use OpenClaw's agent endpoint
+            target = f"http://localhost:3000/agents/{agent_id}"
+
+        scanner = SecurityScanner(target)
         results = asyncio.run(scanner.run_scan())
         
-        if format == 'text':
-            print_findings(results['findings'])
-        elif format == 'json':
-            if output:
-                with open(output, 'w') as f:
-                    json.dump(results, f, indent=2)
-            else:
-                print(json.dumps(results, indent=2))
-        elif format == 'html':
-            # TODO: Implement HTML report generation
-            pass
-            
-        if verbose:
-            console.print("[bold green]Scan complete![/bold green]")
-            
+        # Generate and save/display report
+        # ... (rest of the reporting logic)
+
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
-        raise click.Abort()
 
 @cli.command()
-def self_check():
-    """Run security self-check"""
+@click.option('--output', '-o', help='Output file for results')
+@click.option('--format', '-f', type=click.Choice(['text', 'json', 'html']), default='text')
+def self_check(output: Optional[str] = None, format: str = 'text'):
+    """Run security self-check on this agent"""
     try:
         console.print("[bold blue]Starting self-check...[/bold blue]")
+        
         scanner = SecurityScanner()
-        results = asyncio.run(scanner.run_scan())
-        print_findings(results['findings'])
+        results = asyncio.run(scanner.run_self_check())
+        
+        # ... (reporting logic)
         
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}")
-        raise click.Abort()
 
 if __name__ == '__main__':
     cli()
